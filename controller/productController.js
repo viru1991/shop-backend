@@ -7,7 +7,10 @@ const { ObjectId } = require('mongodb');
 
 const s3 = new S3({
     region: 'ap-south-1',
-
+    credentials: {
+      accessKeyId: "",
+      secretAccessKey: "",
+    },
   });
 
 // exports.addProduct = async (req, res, next) => {
