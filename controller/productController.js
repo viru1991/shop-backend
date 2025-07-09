@@ -328,7 +328,8 @@ exports.getProductDetail = (req, res, next) => {
       if(result == null){
         res.status(400).send({status:400,message:'No such Products'})
       }else{
-        res.send(result)
+        console.log(result)
+        res.send([result])
       }
        
     }).catch(err => {

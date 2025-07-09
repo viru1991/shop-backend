@@ -46,6 +46,7 @@ class Product {
                     return {
                         ...product,
                         // stock: product.stock.filter((item) => item.quantity > 0),
+                        stockLabel:'in stock'
                     };
                 });
                 console.log(filteredResult);
@@ -66,6 +67,7 @@ class Product {
         return db
             .collection("Products")
             .findOne({ _id: ObjectId.createFromHexString(productId) })
+            // .toArray()
             .then((result) => {
                 return result
             })

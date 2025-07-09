@@ -2,6 +2,7 @@ const express = require('express');
 
 const router = express.Router()
 const IsAuth = require("./middlewares/userAuth");
+const IsAdmin = require("./middlewares/adminAuth");
 const userController = require("./controller/userController")
 const productController = require("./controller/productController")
 const signUpSchema = require("./validations/signupValidation");
