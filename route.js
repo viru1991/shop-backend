@@ -21,8 +21,8 @@ router.get('/dashboard', IsAuth, userController.dashboard)
 // userAuth and Routes end
 
 // Product Routes start
-router.post('/addProducts', sanitizeEmptyStrings, productSchema.productSchema, productController.addProduct)
-router.post('/deleteProduct',sanitizeEmptyStrings,productController.deleteProduct)
+router.post('/addProducts', sanitizeEmptyStrings, IsAdmin, productSchema.productSchema, productController.addProduct)
+router.post('/deleteProduct',sanitizeEmptyStrings, IsAdmin, productController.deleteProduct)
 router.get('/getProducts', productController.getProducts)
 // router.get('/getProductDetail',productDetailValidation.validateProductId, productController.getProductDetail)
 router.get('/getProductDetail/:id', productDetailValidation.validateProductId, productController.getProductDetail)

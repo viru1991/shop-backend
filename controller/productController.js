@@ -138,6 +138,106 @@ const s3 = new S3({
 // };
 
 
+// rollback files when any upload fails 
+// exports.addProduct = async (req, res, next) => {
+//   try {
+//     const {
+//       name,
+//       brand,
+//       description,
+//       category,
+//       price,
+//       stock,
+//       colorOptions,
+//       discount,
+//       rating,
+//       isFeatured,
+//       createdAt,
+//       updatedAt,
+//       thumbnail,
+//     } = req.body;
+
+//     // when using request.files from postman
+//     if (!req.files || !req.files.images || req.files.images.length === 0) {
+//       return res.status(400).send("No file uploaded");
+//     }
+
+//     const files = Array.isArray(req.files.images)
+//       ? req.files.images
+//       : [req.files.images];
+
+//     const imageUrls = [];
+//     const uploadedKeys = [];
+
+//     for (const file of files) {
+//       const ext = path.extname(file.name);
+//       const baseName = path.basename(file.name, ext);
+//       const uniqueFileName = `${baseName}-${uuidv4()}${ext}`;
+
+//       const params = {
+//         Bucket: "toetotoedev-1",
+//         Key: uniqueFileName,
+//         Body: file.data,
+//         ContentType: file.mimetype,
+//       };
+
+//       try {
+//         await s3.putObject(params);
+//         uploadedKeys.push(params.Key);
+
+//         const imageUrl = `https://${params.Bucket}.s3.ap-south-1.amazonaws.com/${params.Key}`;
+//         imageUrls.push(imageUrl);
+
+//       } catch (uploadErr) {
+//         console.error(`❌ Upload failed for ${file.name}:`, uploadErr);
+
+//         // Rollback previously uploaded files
+//         for (const key of uploadedKeys) {
+//           try {
+//             await s3.deleteObject({
+//               Bucket: params.Bucket,
+//               Key: key,
+//             });
+//             console.log(`🗑️ Rolled back uploaded file: ${key}`);
+//           } catch (deleteErr) {
+//             console.error(`⚠️ Failed to rollback file ${key}:`, deleteErr);
+//           }
+//         }
+
+//         return res.status(500).json({
+//           error: `Upload failed for ${file.name}. Rolled back all uploaded files.`,
+//         });
+//       }
+//     }
+
+//     console.log(imageUrls, "✅ Uploaded image URLs");
+
+//     const product = new productModel(
+//       name,
+//       brand,
+//       description,
+//       category,
+//       price,
+//       stock,
+//       colorOptions,
+//       discount,
+//       rating,
+//       isFeatured,
+//       createdAt,
+//       updatedAt,
+//       imageUrls,
+//       thumbnail
+//     );
+
+//     const result = await product.saveProducts();
+//     res.send(result);
+
+//   } catch (err) {
+//     console.error("❌ Unexpected error:", err);
+//     next(err);
+//   }
+// };
+
 
 exports.addProduct = async (req, res, next) => {
   try {
@@ -156,6 +256,10 @@ exports.addProduct = async (req, res, next) => {
       updatedAt,
       thumbnail,
     } = req.body;
+
+    const {images} = req.files
+
+    console.log(images,name)
 
     if (!req.files || !req.files.images || req.files.images.length === 0) {
       return res.status(400).send("No file uploaded");
@@ -217,7 +321,7 @@ exports.addProduct = async (req, res, next) => {
       description,
       category,
       price,
-      stock,
+      JSON.parse(stock),
       colorOptions,
       discount,
       rating,

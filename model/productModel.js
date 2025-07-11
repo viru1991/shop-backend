@@ -9,7 +9,7 @@ class Product {
             this.category = category,
             this.price = price,
             this.stock = stock,
-            this.colorOptions = colorOptions,
+            this.colorOptions = colorOptions || [],
             this.discount = discount,
             this.rating = rating,
             this.isFeatured = isFeatured,
@@ -39,7 +39,7 @@ class Product {
                 name: 1, brand: 1, description: 1, price: 1, thumbnail: 1, stock: 1, images:1,colorOptions:1
             })
             .skip(skip)
-            .limit(1)
+            .limit(10)
             .toArray()
             .then((result) => {
                 const filteredResult = result.map((product) => {
