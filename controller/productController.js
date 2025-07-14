@@ -440,3 +440,245 @@ exports.getProductDetail = (req, res, next) => {
         next(err)
     })
 }
+
+// exports.editProduct = (req,res,next) => {
+//       const {
+//       name,
+//       brand,
+//       description,
+//       category,
+//       price,
+//       stock,
+//       colorOptions,
+//       discount,
+//       rating,
+//       isFeatured,
+//       createdAt,
+//       updatedAt,
+//       thumbnail,
+//       keptImages,
+//       removedImages
+//     } = req.body;
+//     const {newImages} = req.files
+//     console.log(newImages,keptImages,removedImages,'data in edit')
+// }
+
+// delete first update later
+// exports.editProduct = async (req, res, next) => {
+//   try {
+//     const {
+//       _id,  // 👈 here’s your productId from body
+//       name,
+//       brand,
+//       description,
+//       category,
+//       price,
+//       stock,
+//       colorOptions,
+//       discount,
+//       rating,
+//       isFeatured,
+//       createdAt,
+//       updatedAt,
+//       thumbnail,
+//       keptImages,
+//       removedImages
+//     } = req.body;
+
+//     let { newImages } = req.files || {};
+
+//     console.log('Incoming:', { _id, newImages, keptImages, removedImages });
+
+//     // 1️⃣ Delete removed images from S3
+//     if (removedImages && Array.isArray(JSON.parse(removedImages))) {
+//       const removed = JSON.parse(removedImages);
+
+//       for (const url of removed) {
+//         const key = url.split('.com/')[1];
+//         if (key) {
+//           await s3.deleteObject({
+//             Bucket: 'toetotoedev-1',
+//             Key: key
+//           });
+//           console.log(`🗑️ Deleted: ${key}`);
+//         }
+//       }
+//     }
+
+//     // 2️⃣ Upload new images
+//     const uploadedUrls = [];
+
+//     if (newImages) {
+//       const files = Array.isArray(newImages) ? newImages : [newImages];
+
+//       for (const file of files) {
+//         const ext = path.extname(file.name);
+//         const baseName = path.basename(file.name, ext);
+//         const uniqueFileName = `${baseName}-${uuidv4()}${ext}`;
+
+//         const params = {
+//           Bucket: 'toetotoedev-1',
+//           Key: uniqueFileName,
+//           Body: file.data,
+//           ContentType: file.mimetype,
+//         };
+
+//         await s3.putObject(params);
+
+//         const imageUrl = `https://${params.Bucket}.s3.ap-south-1.amazonaws.com/${params.Key}`;
+//         uploadedUrls.push(imageUrl);
+//         console.log(`✅ Uploaded: ${imageUrl}`);
+//       }
+//     }
+
+//     // 3️⃣ Combine kept + new
+//     const finalImages = [
+//       ...(keptImages ? JSON.parse(keptImages) : []),
+//       ...uploadedUrls
+//     ];
+
+//     // 4️⃣ Prepare update fields
+//     const updateFields = {
+//       name,
+//       brand,
+//       description,
+//       category,
+//       price,
+//       stock: JSON.parse(stock),
+//       colorOptions,
+//       discount,
+//       rating,
+//       isFeatured,
+//       createdAt,
+//       updatedAt,
+//       images: finalImages,
+//       thumbnail
+//     };
+
+//     // 5️⃣ Call your update method with `_id`
+//     productModel.updateById(_id, updateFields)
+//       .then(result => {
+//         if (result.matchedCount === 0) {
+//           return res.status(404).send({ status: 404, message: 'No such product to update' });
+//         }
+
+//         res.send({ status: 200, message: 'Product updated successfully', result });
+//       })
+//       .catch(err => {
+//         console.error(err);
+//         res.status(500).send({ status: 500, message: 'Update failed', error: err });
+//       });
+
+//   } catch (err) {
+//     console.error('❌ Edit product error:', err);
+//     next(err);
+//   }
+// };
+
+// update first delete later
+exports.editProduct = async (req, res, next) => {
+  try {
+    const {
+      _id,
+      name,
+      brand,
+      description,
+      category,
+      price,
+      stock,
+      colorOptions,
+      discount,
+      rating,
+      isFeatured,
+      createdAt,
+      updatedAt,
+      thumbnail,
+      keptImages,
+      removedImages
+    } = req.body;
+
+    let { newImages } = req.files || {};
+
+    console.log('Incoming:', { _id, newImages, keptImages, removedImages });
+
+    // 1️⃣ Upload new images
+    const uploadedUrls = [];
+
+    if (newImages) {
+      const files = Array.isArray(newImages) ? newImages : [newImages];
+
+      for (const file of files) {
+        const ext = path.extname(file.name);
+        const baseName = path.basename(file.name, ext);
+        const uniqueFileName = `${baseName}-${uuidv4()}${ext}`;
+
+        const params = {
+          Bucket: 'toetotoedev-1',
+          Key: uniqueFileName,
+          Body: file.data,
+          ContentType: file.mimetype,
+        };
+
+        await s3.putObject(params);
+
+        const imageUrl = `https://${params.Bucket}.s3.ap-south-1.amazonaws.com/${params.Key}`;
+        uploadedUrls.push(imageUrl);
+        console.log(`✅ Uploaded: ${imageUrl}`);
+      }
+    }
+
+    // 2️⃣ Combine kept + new
+    const finalImages = [
+      ...(keptImages ? JSON.parse(keptImages) : []),
+      ...uploadedUrls
+    ];
+
+    // 3️⃣ Prepare update fields
+    const updateFields = {
+      name,
+      brand,
+      description,
+      category,
+      price,
+      stock: JSON.parse(stock),
+      colorOptions,
+      discount,
+      rating,
+      isFeatured,
+      createdAt,
+      updatedAt,
+      images: finalImages,
+      thumbnail
+    };
+
+    // 4️⃣ Update DB FIRST
+    const result = await productModel.updateById(_id, updateFields);
+
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ status: 404, message: 'No such product to update' });
+    }
+
+    // 5️⃣ Now safely delete removed images AFTER DB is good
+    if (removedImages && Array.isArray(JSON.parse(removedImages))) {
+      const removed = JSON.parse(removedImages);
+
+      for (const url of removed) {
+        const key = url.split('.com/')[1];
+        if (key) {
+          await s3.deleteObject({
+            Bucket: 'toetotoedev-1',
+            Key: key
+          });
+          console.log(`🗑️ Deleted: ${key}`);
+        }
+      }
+    }
+
+    // 6️⃣ Done
+    res.send({ status: 200, message: 'Product updated successfully', result });
+
+  } catch (err) {
+    console.error('❌ Edit product error:', err);
+    next(err);
+  }
+};

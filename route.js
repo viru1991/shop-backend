@@ -23,6 +23,7 @@ router.get('/dashboard', IsAuth, userController.dashboard)
 // Product Routes start
 router.post('/addProducts', sanitizeEmptyStrings, IsAdmin, productSchema.productSchema, productController.addProduct)
 router.post('/deleteProduct',sanitizeEmptyStrings, IsAdmin, productController.deleteProduct)
+router.post('/editProduct',sanitizeEmptyStrings, IsAdmin, productController.editProduct)
 router.get('/getProducts', productController.getProducts)
 // router.get('/getProductDetail',productDetailValidation.validateProductId, productController.getProductDetail)
 router.get('/getProductDetail/:id', productDetailValidation.validateProductId, productController.getProductDetail)

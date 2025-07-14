@@ -36,7 +36,7 @@ class Product {
             .collection("Products")
             .find()
             .project({
-                name: 1, brand: 1, description: 1, price: 1, thumbnail: 1, stock: 1, images:1,colorOptions:1
+                name: 1, brand: 1, description: 1, price: 1, thumbnail: 1, stock: 1, images: 1, colorOptions: 1
             })
             .skip(skip)
             .limit(10)
@@ -46,7 +46,7 @@ class Product {
                     return {
                         ...product,
                         // stock: product.stock.filter((item) => item.quantity > 0),
-                        stockLabel:'in stock'
+                        stockLabel: 'in stock'
                     };
                 });
                 console.log(filteredResult);
@@ -63,7 +63,7 @@ class Product {
         const db = getDB()
         if (!ObjectId.isValid(productId)) {
             return Promise.reject(new Error("Invalid ObjectId format"));
-          }
+        }
         return db
             .collection("Products")
             .findOne({ _id: ObjectId.createFromHexString(productId) })
@@ -78,22 +78,37 @@ class Product {
 
     static deleteById(productId) {
         const db = getDB();
-    
+
         if (!ObjectId.isValid(productId)) {
-          return Promise.reject(new Error("Invalid ObjectId format"));
+            return Promise.reject(new Error("Invalid ObjectId format"));
         }
-    
+
         return db
-          .collection("Products")
-          .deleteOne({ _id: new ObjectId(productId) })
-          .then(result => {
-            return result; // Will have result.deletedCount
-          })
-          .catch(err => {
-            console.error("DB error in deleteById:", err);
-            throw err;
-          });
-      }
+            .collection("Products")
+            .deleteOne({ _id: new ObjectId(productId) })
+            .then(result => {
+                return result; // Will have result.deletedCount
+            })
+            .catch(err => {
+                console.error("DB error in deleteById:", err);
+                throw err;
+            });
+    }
+
+    static updateById(id, updateData) {
+        const db = getDB();
+        return db
+            .collection('Products')
+            .updateOne({ _id: new ObjectId(id) }, { $set: updateData })
+            .then(result => {
+                console.log('✅ Mongo update result:', result);
+                return result;
+            })
+            .catch(err => {
+                console.error('❌ Mongo update error:', err);
+                throw err;
+            });
+    }
 }
 
 module.exports = Product
